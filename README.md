@@ -1,4 +1,4 @@
-# simpleCalDAV
+# simpleCalDAV.
 
 Build status: [![Latest Stable Version](https://poser.pugx.org/thecsea/simple-caldav-client/v/stable)](https://packagist.org/packages/thecsea/simple-caldav-client) [![Total Downloads](https://poser.pugx.org/thecsea/simple-caldav-client/downloads)](https://packagist.org/packages/thecsea/simple-caldav-client) [![Latest Unstable Version](https://poser.pugx.org/thecsea/simple-caldav-client/v/unstable)](https://packagist.org/packages/thecsea/simple-caldav-client) [![License](https://poser.pugx.org/thecsea/simple-caldav-client/license)](https://packagist.org/packages/thecsea/simple-caldav-client)
 
