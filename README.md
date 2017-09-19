@@ -4,9 +4,6 @@ Build status: [![Latest Stable Version](https://poser.pugx.org/thecsea/simple-ca
 
 This library is just a porting for packagist of [https://github.com/wvrzel/simpleCalDAV](https://github.com/wvrzel/simpleCalDAV)
 
-# Examples of use
-* [https://github.com/dsd-meetme/backend](https://github.com/dsd-meetme/backend)
-
 simpleCalDAV
 
 Copyright 2014 Michael Palm <palm.michael@gmx.de>
