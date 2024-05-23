@@ -43,8 +43,6 @@
 namespace it\thecsea\simple_caldav_client;
 
 
-use sdf\kernel\ErrorException;
-
 class SimpleCalDAVClient {
     protected $client;
     protected  $url;
@@ -54,19 +52,19 @@ class SimpleCalDAVClient {
      * Connects to a CalDAV-Server.
      *
      * Arguments:
-     * @param $url URL to the CalDAV-server. E.g. http://exam.pl/baikal/cal.php/username/calendername/
-     * @param $user Username to login with
-     * @param $pass Password to login with
+	 * @param string $url URL to the CalDAV-server. E.g. http://exam.pl/baikal/cal.php/username/calendername/
+	 * @param string $user Username to login with
+	 * @param string $pass Password to login with
+	 * @param array $options
      *
      * Debugging:
-     * @throws CalDAVException
-     * For debugging purposes, just sorround everything with try { ... } catch (Exception $e) { echo $e->__toString(); }
+	 * @throws CalDAVException For debugging purposes, just sorround everything with try { ... } catch (Exception $e) { echo $e->__toString(); }
      */
-    function connect ( $url, $user, $pass, $oauthBearer=null)
+	function connect ( $url, $user, $pass, $options=[] )
     {
 
-        //  Connect to CalDAV-Server and log in
-        $client = new CalDAVClient($url, $user, $pass, ['bearer'=>$oauthBearer]);
+		//  Connect to CalDAV-Server and log in
+		$client = new CalDAVClient($url, $user, $pass, $options);
 
         // Valid CalDAV-Server? Or is it just a WebDAV-Server?
         if( ! $client->isValidCalDAVServer() )
@@ -112,7 +110,7 @@ class SimpleCalDAVClient {
      * Requests a list of all accessible calendars on the server
      *
      * Return value:
-     * @return an array of CalDAVCalendar-Objects (see CalDAVCalendar.php), representing all calendars accessible by the current principal (user).
+	 * @return CalDAVCalendar[] an array of CalDAVCalendar-Objects (see CalDAVCalendar.php), representing all calendars accessible by the current principal (user).
      *
      * Debugging:
      * @throws CalDAVException
@@ -129,16 +127,17 @@ class SimpleCalDAVClient {
      * function setCalendar()
      *
      * Sets the actual calendar to work with
+     * @param CalDAVCalendar $calendar
      *
-     * Debugging:
-     * @throws CalDAVException
-     * For debugging purposes, just sorround everything with try { ... } catch (Exception $e) { echo $e->__toString(); exit(-1); }
-     */
-    function setCalendar ( CalDAVCalendar $calendar )
-    {
-        if(!isset($this->client)) throw new Exception('No connection. Try connect().');
+	 * Debugging:
+	 * @throws CalDAVException
+	 * For debugging purposes, just sorround everything with try { ... } catch (Exception $e) { echo $e->__toString(); exit(-1); }
+	 */
+	function setCalendar ( CalDAVCalendar $calendar )
+	{
+		if(!isset($this->client)) throw new Exception('No connection. Try connect().');
 
-        $this->client->SetCalendar($this->client->first_url_part.$calendar->getURL());
+		$this->client->SetCalendar($this->client->first_url_part.$calendar->getURL());
 
         // Is there a '/' at the end of the calendar_url?
         if ( ! preg_match( '#^.*?/$#', $this->client->calendar_url, $matches ) ) { $this->url = $this->client->calendar_url.'/'; }
@@ -150,11 +149,11 @@ class SimpleCalDAVClient {
      * Creates a new calendar resource on the CalDAV-Server (event, todo, etc.).
      *
      * Arguments:
-     * @param $cal iCalendar-data of the resource you want to create.
+	 * @param string $cal iCalendar-data of the resource you want to create.
      *           	Notice: The iCalendar-data contains the unique ID which specifies where the event is being saved.
      *
      * Return value:
-     * @return An CalDAVObject-representation (see CalDAVObject.php) of your created resource
+	 * @return CalDAVObject An CalDAVObject-representation (see CalDAVObject.php) of your created resource
      *
      * Debugging:
      * @throws CalDAVException
@@ -201,12 +200,12 @@ class SimpleCalDAVClient {
      * Changes a calendar resource (event, todo, etc.) on the CalDAV-Server.
      *
      * Arguments:
-     * @param $href See CalDAVObject.php
-     * @param $cal The new iCalendar-data that should be used to overwrite the old one.
-     * @param $etag See CalDAVObject.php
+	 * @param string $href See CalDAVObject.php
+	 * @param string $new_data The new iCalendar-data that should be used to overwrite the old one.
+	 * @param string $etag See CalDAVObject.php
      *
      * Return value:
-     * @return An CalDAVObject-representation (see CalDAVObject.php) of your changed resource
+	 * @return CalDAVObject An CalDAVObject-representation (see CalDAVObject.php) of your changed resource
      *
      * Debugging:
      * @throws CalDAVException
@@ -239,20 +238,19 @@ class SimpleCalDAVClient {
         return new CalDAVObject($href, $new_data, $newEtag);
     }
 
-
     /**
      * function delete()
      * Delets an event or a TODO from the CalDAV-Server.
      *
      * Arguments:
-     * @param $href See CalDAVObject.php
-     * @param $etag See CalDAVObject.php
+	 * @param string $href See CalDAVObject.php
+	 * @param string|null $etag See CalDAVObject.php
      *
      * Debugging:
      * @throws CalDAVException
      * For debugging purposes, just sorround everything with try { ... } catch (Exception $e) { echo $e->__toString(); exit(-1); }
      */
-    function delete ( $href, $etag )
+	function delete ( $href, $etag = null )
     {
         // Connection and calendar set?
         if(!isset($this->client)) throw new Exception('No connection. Try connect().');
@@ -262,11 +260,17 @@ class SimpleCalDAVClient {
         $result = $this->client->GetEntryByHref($href);
         if(count($result) == 0) throw new CalDAVException('Can\'t find '.$href.'on server', $this->client);
 
-        // $etag correct?
-        if($result[0]['etag'] != $etag) { throw new CalDAVException('Wrong entity tag. The entity seems to have changed.', $this->client); }
+		if(isset($etag) and !empty($etag)) {
+			// $etag correct?
+			if($result[0]['etag'] != $etag) { throw new CalDAVException('Wrong entity tag. The entity seems to have changed.', $this->client); }
+		}
 
-        // Do the deletion
-        $this->client->DoDELETERequest($href, $etag);
+		// Do the deletion
+		if(isset($etag) and !empty($etag)) {
+			$this->client->DoDELETERequest($href, $etag);
+		} else {
+			$this->client->DoDELETERequest($href);
+		}
 
         // Deletion successfull?
         if ( $this->client->GetHttpResultCode() != '200' and $this->client->GetHttpResultCode() != '204' )
@@ -280,13 +284,13 @@ class SimpleCalDAVClient {
      * Gets a all events from the CalDAV-Server which lie in a defined time interval.
      *
      * Arguments:
-     * @param $start The starting point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
+	 * @param string|null $start The starting point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
      *           		GMT. If omitted the value is set to -infinity.
-     * @param $end The end point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
+	 * @param string|null $end The end point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
      *           		GMT. If omitted the value is set to +infinity.
      *
      * Return value:
-     * @return an array of CalDAVObjects (See CalDAVObject.php), representing the found events.
+	 * @return CalDAVObject[] an array of CalDAVObjects (See CalDAVObject.php), representing the found events.
      *
      * Debugging:
      * @throws CalDAVException
@@ -325,15 +329,15 @@ class SimpleCalDAVClient {
      * given criteria.
      *
      * Arguments:
-     * @param $start The starting point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
+	 * @param string $start The starting point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
      *              	GMT. If omitted the value is set to -infinity.
-     * @param $end The end point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
+	 * @param string $end The end point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
      *              	GMT. If omitted the value is set to +infinity.
-     * @param $complete Filter for completed tasks (true) or for uncompleted tasks (false). If omitted, the function will return both.
-     * @param $cancelled Filter for cancelled tasks (true) or for uncancelled tasks (false). If omitted, the function will return both.
+	 * @param bool|null $completed Filter for completed tasks (true) or for uncompleted tasks (false). If omitted, the function will return both.
+	 * @param bool|null $cancelled Filter for cancelled tasks (true) or for uncancelled tasks (false). If omitted, the function will return both.
      *
      * Return value:
-     * @return an array of CalDAVObjects (See CalDAVObject.php), representing the found TODOs.
+	 * @return CalDAVObject[] an array of CalDAVObjects (See CalDAVObject.php), representing the found TODOs.
      *
      * Debugging:
      * @throws CalDAVException
@@ -376,10 +380,10 @@ class SimpleCalDAVClient {
      * See http://www.rfcreader.com/#rfc4791_line1524 for more information about how to write filters on your own.
      *
      * Arguments:
-     * @param $filterXML - The stuff, you want to send encapsulated in the <C:filter>-tag.
+	 * @param string $filterXML The stuff, you want to send encapsulated in the <C:filter>-tag.
      *
      * Return value:
-     * @return an array of CalDAVObjects (See CalDAVObject.php), representing the found calendar resources.
+	 * @return CalDAVObject[] an array of CalDAVObjects (See CalDAVObject.php), representing the found calendar resources.
      *
      * Debugging:
      * @throws CalDAVException

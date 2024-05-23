@@ -49,12 +49,12 @@ class CalDAVFilter {
      * have the SUMMARY-property.
      * mustInclude("LOCATION "); specifies that all returned resources have to
      * have the LOCATION-property.
-     *
-     * Arguments:
-     * @param $field The name of the property. For a full list of valid
+	 *
+	 * Arguments:
+	 * @param string $field The name of the property. For a full list of valid
      *               property names see http://www.rfcreader.com/#rfc5545_line3622
      *               Note that the server might not support all of them.
-     * @param $inverse Makes the effect inverse: The resource must NOT include
+     * @param bool $inverse Makes the effect inverse: The resource must NOT include
      *                 the property $field
      */
     public function mustInclude ( $field, $inverse = FALSE ) {
@@ -72,13 +72,13 @@ class CalDAVFilter {
      * mustIncludeMatchSubstr("SUMMARY", "a part of the summary"); would return
      * a resource with "SUMMARY:This is a part of the summary" included, but no
      * resource with "SUMMARY:This is a part of the".
-     *
-     * Arguments:
-     * @param $field The name of the property. For a full list of valid
+	 *
+	 * Arguments:
+	 * @param string $field The name of the property. For a full list of valid
      *               property names see http://www.rfcreader.com/#rfc5545_line3622
      *               Note that the server might not support all of them.
-     * @param $substring Substring to match against the value of the property.
-     * @param $inverse Makes the effect inverse: The property value must NOT
+     * @param string $substring Substring to match against the value of the property.
+     * @param bool $inverse Makes the effect inverse: The property value must NOT
      *                 include the $substring
      */
     public function mustIncludeMatchSubstr ( $field, $substring, $inverse = FALSE ) {
@@ -91,13 +91,13 @@ class CalDAVFilter {
      * @see http://www.rfcreader.com/#rfc4791_line3944
      *
      * Only call this function once per CalDAVFilter-object!
-     *
-     * Arguments:
-     * @param $start The starting point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
-     *              	GMT. If omitted the value is set to -infinity.
-     * @param $end The end point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
-     *              	GMT. If omitted the value is set to +infinity.
-     */
+	 * 
+	 * Arguments:
+	 * @param string $start The starting point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
+	 *              	GMT. If omitted the value is set to -infinity.
+	 * @param string $end The end point of the time interval. Must be in the format yyyymmddThhmmssZ and should be in
+	 *              	GMT. If omitted the value is set to +infinity.
+	 */
     public function mustOverlapWithTimerange ( $start = NULL, $end = NULL) {
         // Are $start and $end in the correct format?
         if ( ( isset($start) and ! preg_match( '#^\d\d\d\d\d\d\d\dT\d\d\d\d\d\dZ$#', $start, $matches ) )
@@ -139,6 +139,8 @@ class CalDAVFilter {
     /**
      * Transforms the filter to xml-code for the server. Used to pass as
      * argument for SimpleCalDAVClient->getCustomReport()
+     *
+     * @return string
      *
      * Example:
      * $simpleCalDAVClient->getCustomReport($filter->toXML());
