@@ -44,8 +44,8 @@ namespace it\thecsea\simple_caldav_client;
 
 
 class SimpleCalDAVClient {
-    private $client;
-    private $url;
+    protected $client;
+    protected $url;
 
     /**
      * function connect()
