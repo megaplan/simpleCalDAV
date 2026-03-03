@@ -79,6 +79,8 @@ class CalDAVClient {
     // First part of the full url
     public $first_url_part;
 
+    private $log_messages = '';
+
     /**
      * Constructor
      *
@@ -289,7 +291,7 @@ class CalDAVClient {
                 //        echo "\nNodes array............................................................\n"; print_r( $this->xmlnodes );
                 //        echo "\nTags array............................................................\n";  print_r( $this->xmltags );
                 //printf( "\nXML Reponse:\n%s\n", $this->xmlResponse );
-                log_message('ERROR', 'XML parsing error: '
+                $this->log_message('ERROR', 'XML parsing error: '
                         . xml_get_error_code($parser) . ', '
                         . xml_error_string(xml_get_error_code($parser)));
             }
@@ -366,6 +368,8 @@ class CalDAVClient {
      * @return bool|string The content of the response from the server
      */
     function DoRequest( $url = null ) {
+        $this->clear_log_messages();
+
         if (is_null($url)) {
             $url = $this->full_url;
         }
@@ -412,7 +416,7 @@ class CalDAVClient {
 
         if (FALSE === $response) {
             // TODO better error handling
-            log_message('ERROR', 'Error requesting ' . $url . ': '
+            $this->log_message('ERROR', 'Error requesting ' . $url . ': '
                     . curl_error($this->ch));
             return false;
         }
@@ -435,14 +439,10 @@ class CalDAVClient {
         $this->ParseResponseHeaders($this->httpResponseHeaders);
         $this->ParseResponse($this->httpResponseBody);
 
-        //TODO debug
-
-        /*
-        log_message('INTERNALS', 'REQh: ' . var_export($info['request_header'], TRUE));
-        log_message('INTERNALS', 'REQb: ' . var_export($this->body, TRUE));
-        log_message('INTERNALS', 'RPLh: ' . var_export($this->httpResponseHeaders, TRUE));
-        log_message('INTERNALS', 'RPLb: ' . var_export($this->httpResponseBody, TRUE));
-        */
+        $this->log_message('INTERNALS', 'Info: ' . var_export($info, TRUE));
+        $this->log_message('INTERNALS', 'REQb: ' . var_export($this->body, TRUE));
+        $this->log_message('INTERNALS', 'RPLh: ' . var_export($this->httpResponseHeaders, TRUE));
+        $this->log_message('INTERNALS', 'RPLb: ' . var_export($this->httpResponseBody, TRUE));
 
         return $response;
     }
@@ -1359,6 +1359,26 @@ EOFILTER;
 
         echo $string;
     }
+
+    private function clear_log_messages()
+    {
+        $this->log_messages = '';
+    }
+
+    private function log_message ($type, $message) {
+        $msg = '['.$type.'] '.$message.'\n';
+        global $debug;
+        if ($debug) {
+            echo $msg;
+        }
+
+        $this->log_messages .= $msg;
+    }
+
+    public function GetLastLog(): string
+    {
+        return $this->log_messages;
+    }
 }
 
   /**
@@ -1367,9 +1387,3 @@ EOFILTER;
 
 $debug = TRUE;
 
-function log_message ($type, $message) {
-    global $debug;
-    if ($debug) {
-        echo '['.$type.'] '.$message.'\n';
-    }
-}

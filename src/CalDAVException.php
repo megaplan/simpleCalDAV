@@ -19,14 +19,16 @@ class CalDAVException extends \Exception {
     private $requestBody;
     private $responseHeader;
     private $responseBody;
+    private $lastLog;
     
-    public function __construct($message, $client, $code = 0, Exception $previous = null) {
+    public function __construct($message, CalDAVClient $client, $code = 0, Exception $previous = null) {
         parent::__construct($message, $code, $previous);
         
         $this->requestHeader = $client->GetHttpRequest();
         $this->requestBody = $client->GetBody();
         $this->responseHeader = $client->GetResponseHeaders();
         $this->responseBody = $client->GetResponseBody();
+        $this->lastLog = $client->GetLastLog();
 
         $this->message = $this->__toString();
     }
@@ -71,9 +73,13 @@ class CalDAVException extends \Exception {
         $string .= '<br><br>';
         
         $string .= 'Trace:<br><br>'.$this->getTraceAsString();
-    
+
+        $string .= '<br><br>';
+
+        $string .= 'Last logs: '.$this->getLastLog();
+
         $string .= '</pre>';
-        
+
         return $string;
     }
     
@@ -91,6 +97,11 @@ class CalDAVException extends \Exception {
     
     public function getresponseBody() {
         return $this->responseBody;
+    }
+
+    public function getLastLog()
+    {
+        return $this->lastLog;
     }
 }
 
