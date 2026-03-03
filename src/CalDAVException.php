@@ -27,9 +27,11 @@ class CalDAVException extends \Exception {
         $this->requestBody = $client->GetBody();
         $this->responseHeader = $client->GetResponseHeaders();
         $this->responseBody = $client->GetResponseBody();
+
+        $this->message = $this->__toString();
     }
-    
-    public function __toString() {
+
+    public function __toString(): string {
         $string = '';
         $dom = new \DOMDocument();
         $dom->preserveWhiteSpace = FALSE;
