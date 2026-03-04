@@ -183,6 +183,7 @@ class CalDAVClient {
         // Clean headers
         $this->headers = array();
         $dav_options = $this->DoOptionsRequestAndGetDAVHeader();
+        $this->log_message('INFO', 'dav_options: '.var_export($dav_options, true));
         return isset($dav_options['calendar-access']);
     }
 
