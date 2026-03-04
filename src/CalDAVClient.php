@@ -988,14 +988,18 @@ EOXML;
         $this->DoRequest( $this->calendar_url );
 
         $report = array();
+        $skipCurrentResponse = false;
         foreach( $this->xmlnodes as $k => $v ) {
             switch( $v['tag'] ) {
                 case 'DAV::response':
-                    if ( $v['type'] == 'open' ) {
+                    if ( $v['type'] === 'open' ) {
                         $response = array();
                     }
-                    elseif ( $v['type'] == 'close' ) {
-                        $report[] = $response;
+                    elseif ( $v['type'] === 'close' ) {
+                        if (!$skipCurrentResponse) {
+                            $report[] = $response;
+                        }
+                        $skipCurrentResponse = false;
                     }
                     break;
                 case 'DAV::href':
@@ -1005,8 +1009,12 @@ EOXML;
                     $response['etag'] = preg_replace('/^"?([^"]+)"?/', '$1', $v['value']);
                     break;
                 case 'urn:ietf:params:xml:ns:caldav:calendar-data':
-                          $response['data'] = $v['value'];
-                          break;
+                    if (isset($v['value'])) {
+                        $response['data'] = $v['value'];
+                    } else {
+                        $skipCurrentResponse = true;
+                    }
+                    break;
             }
         }
         return $report;
