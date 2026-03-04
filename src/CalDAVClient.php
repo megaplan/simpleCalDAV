@@ -413,7 +413,17 @@ class CalDAVClient {
         // HTTP 1.0 for yandex caldav server
         curl_setopt($this->ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 
+        // Capture curl verbose trace
+        $curlVerboseStream = fopen('php://temp', 'w+');
+        curl_setopt($this->ch, CURLOPT_VERBOSE, TRUE);
+        curl_setopt($this->ch, CURLOPT_STDERR, $curlVerboseStream);
+
         $response = curl_exec($this->ch);
+
+        rewind($curlVerboseStream);
+        $curlVerboseLog = stream_get_contents($curlVerboseStream);
+        fclose($curlVerboseStream);
+        $this->log_message('CURL', $curlVerboseLog);
 
         if (FALSE === $response) {
             // TODO better error handling
