@@ -47,6 +47,16 @@ class SimpleCalDAVClient {
     protected $client;
     protected $url;
 
+    public function getHttpVersion(): int
+    {
+        return CURL_HTTP_VERSION_1_0;
+    }
+
+    public function getHttp09Allowed(): bool
+    {
+        return true;
+    }
+
     /**
      * function connect()
      * Connects to a CalDAV-Server.
@@ -65,6 +75,8 @@ class SimpleCalDAVClient {
 
         //  Connect to CalDAV-Server and log in
         $client = new CalDAVClient($url, $user, $pass, $options);
+        $client->setHttpVersion($this->getHttpVersion());
+        $client->setHttp09Allowed($this->getHttp09Allowed());
 
         // Valid CalDAV-Server? Or is it just a WebDAV-Server?
         if( ! $client->isValidCalDAVServer() )

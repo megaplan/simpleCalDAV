@@ -81,6 +81,9 @@ class CalDAVClient {
 
     private $log_messages = '';
 
+    protected $http09_allowed = true;
+    protected $http_version = CURL_HTTP_VERSION_1_0;
+
     /**
      * Constructor
      *
@@ -408,10 +411,10 @@ class CalDAVClient {
 
         // Save Request
         curl_setopt($this->ch, CURLINFO_HEADER_OUT, TRUE);
-        curl_setopt($this->ch, CURLOPT_HTTP09_ALLOWED, true);
+        curl_setopt($this->ch, CURLOPT_HTTP09_ALLOWED, $this->http09_allowed);
 
         // HTTP 1.0 for yandex caldav server
-        curl_setopt($this->ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+        curl_setopt($this->ch, CURLOPT_HTTP_VERSION, $this->http_version);
 
         // Capture curl verbose trace
         $curlVerboseStream = fopen('php://temp', 'w+');
@@ -1389,6 +1392,16 @@ EOFILTER;
     public function GetLastLog(): string
     {
         return $this->log_messages;
+    }
+
+    public function setHttpVersion(int $httpVersion)
+    {
+        $this->http_version = $httpVersion;
+    }
+
+    public function setHttp09Allowed(bool $http09Allowed)
+    {
+        $this->http09_allowed = $http09Allowed;
     }
 }
 
